@@ -25,10 +25,6 @@ def joystickCallback(msg):
     twist.linear.z = -1.0
   twist.linear.x = msg.axes[2]
   twist.linear.y = -1.0 * msg.axes[3]
-  if (msg.buttons[0]):
-    twist.linear.x = 1000.0
-    twist.linear.y = 1000.0
-    twist.linear.z = 1000.0
   pub.publish(twist)
   return 
 
