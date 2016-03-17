@@ -1,20 +1,25 @@
 #!/usr/bin/env python
 
 import rospy
+from std_msgs.msg import Empty
 from geometry_msgs.msg import Twist
 import sys, select, termios, tty
 
 helpMessage = """
 Use keyboard to move UAV.
 ---------------------------
-k: hover
-a: ascend
-d: descend
-l: + x-axis
-j: - x-axis
-i: + y-axis
-,: - y-axis
-w: warp
+'1': take off (AR Drone)
+'0': land (AR Drone)
+'w': rotate counterclockwise
+'r': rotate clockwise
+'e': stop rotating
+'a': ascend
+'d': descend
+'i': move forward
+',': move backward
+'j': move left
+'l': move right
+'k': hover / stop moving
 
 CTRL-C to quit
 """
@@ -29,6 +34,15 @@ moveBindings = {
   ',' : (-1.0, 0.0, 0.0)
 }
 
+rotateBindings = {
+  'e' : (0.0, 0.0, 0.0),
+  'w' : (0.0, 0.0, 1.0),
+  'r' : (0.0, 0.0, -1.0)
+}
+
+takeOffKey = '1'
+landKey = '0'
+
 def getKey():
   tty.setraw(sys.stdin.fileno())
   select.select([sys.stdin], [], [], 0)
@@ -37,7 +51,9 @@ def getKey():
   return key
 
 rospy.init_node('teleop_keyboard')
-pub = rospy.Publisher('cmd_vel', Twist, queue_size = 10)
+pubMove = rospy.Publisher('/cmd_vel', Twist, queue_size = 10)
+pubStart = rospy.Publisher('/ardrone/takeoff', Empty, queue_size = 10)
+pubStop = rospy.Publisher('/ardrone/land', Empty, queue_size = 10)
 settings = termios.tcgetattr(sys.stdin)
 
 print helpMessage
@@ -45,14 +61,25 @@ print helpMessage
 while(1):
   key = getKey()
 
-  if key in moveBindings.keys():
+  if (key in moveBindings.keys()):
     twist = Twist()
     twist.linear.x = moveBindings[key][0]
     twist.linear.y = moveBindings[key][1]
     twist.linear.z = moveBindings[key][2]
-    pub.publish(twist)
+    pubMove.publish(twist)
     print twist
-  elif (key == '\x03'):
+  if (key in rotateBindings.keys()):
+    twist = Twist()
+    twist.angular.z = rotateBindings[key][2]
+    pubMove.publish(twist)
+    print twist
+  if (key == takeOffKey):
+    pubStart.publish(Empty())
+    print 'UAV Taking Off'
+  if (key == landKey):
+    pubStop.publish(Empty())
+    print 'UAV Landing'
+  if (key == '\x03'):
     break
 
   termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
