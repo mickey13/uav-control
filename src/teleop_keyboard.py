@@ -67,18 +67,14 @@ while(1):
     twist.linear.y = moveBindings[key][1]
     twist.linear.z = moveBindings[key][2]
     pubMove.publish(twist)
-    print twist
   if (key in rotateBindings.keys()):
     twist = Twist()
     twist.angular.z = rotateBindings[key][2]
     pubMove.publish(twist)
-    print twist
   if (key == takeOffKey):
     pubStart.publish(Empty())
-    print 'UAV Taking Off'
   if (key == landKey):
     pubStop.publish(Empty())
-    print 'UAV Landing'
   if (key == '\x03'):
     break
 
