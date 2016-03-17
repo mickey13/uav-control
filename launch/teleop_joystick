@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+
+<launch>
+
+  <node name="joy" pkg="joy" type="joy_node" />
+  <node name="teleop_joystick" pkg="uav_control" type="teleop_joystick.py" />
+
+</launch>
+
